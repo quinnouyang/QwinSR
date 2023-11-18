@@ -1,0 +1,6 @@
+[submodule "StableSR"]
+	path = StableSR
+	url = https://github.com/IceClear/StableSR
+[submodule "SwinIR"]
+	path = SwinIR
+	url = git@github.com:JingyunLiang/SwinIR.git
