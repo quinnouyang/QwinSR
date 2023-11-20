@@ -1,2 +1,2 @@
 def foo() -> None:
-    print("Foo again!")
+    print("Foo again, again!")
