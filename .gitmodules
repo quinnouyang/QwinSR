@@ -1,6 +1,6 @@
-[submodule "StableSR"]
-	path = StableSR
-	url = https://github.com/IceClear/StableSR
 [submodule "SwinIR"]
 	path = SwinIR
 	url = git@github.com:JingyunLiang/SwinIR.git
+[submodule "Swin-Transformer"]
+	path = Swin-Transformer
+	url = git@github.com:microsoft/Swin-Transformer.git
