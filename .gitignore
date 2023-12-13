@@ -1,8 +1,24 @@
-**/.DS_Store
-
 # Python Stuff
 **/.ipynb_checkpoints
 **/__pycache__
 **/.pyc
 
 **/.python-version
+
+# This should die in a dumpster fire >:(
+**/.DS_Store
+
+# Files from default build config (except PDFs)
+**/*.aux
+**/*.fdb_latexmk
+**/*.fls
+**/*.log
+**/*.out
+**/*.synctex.gz
+
+# Auxillary files (from custom build config)
+**/aux
+
+# Output files (from custom build config)
+**/out/*
+!**/out/*.pdf
