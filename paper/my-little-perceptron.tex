@@ -26,14 +26,12 @@
 \title{QwinSR: An All-MLP Shifted Window Model for Image Super Resolution}
 
 \author{
-  Mark Bauer\thanks{Use footnote for providing further information
-    about author (webpage, alternative address)---\emph{not} for acknowledging
-    funding agencies.} \\
+  Mark Bauer \\
   Siebel Department of Computer Science\\
   University of Illinois Urbana-Champaign\\
   \texttt{markb6@illinois.edu} \\
   \And
-  Quinn Ouyang\thanks{"Quinn" $=$ "Qwin"} \\
+  Quinn Ouyang\thanks{"QwinSR" is a play on Swin using Quinn's name. This was Mark's idea.} \\
   School of Music \\
   University of Illinois Urbana-Champaign \\
   \texttt{qouyang3@illinois.edu} \\
@@ -61,266 +59,95 @@ Traditional algorithmic approaches for SR directly interpolate pixels from a low
 
 \subsubsection{Learning-based Approaches}
 
-On the other hand, learning-based models spanning a variety of architectures have far surpassed the generalized interpolations that traditional approaches limit themselves to [], as we have briefly illustrated in Figure~\ref{fig:example}. Models based on convolutional neural networks (e.g. SRCNN, SRResNet), general adversarial networks (e.g. ESRGAN, SRGAN, Real-ESRGAN), and transformers (e.g. SwinIR) have all effectively competed for state-of-the-art performance [].
+On the other hand, learning-based models spanning a variety of architectures have far surpassed the generalized interpolations that traditional approaches limit themselves to [], as we briefly illustrated in Figure~\ref{fig:example}. Models based on convolutional neural networks (e.g. SRCNN, SRResNet), general adversarial networks (e.g. ESRGAN, SRGAN, Real-ESRGAN), and transformers (e.g. SwinIR) have all effectively competed for state-of-the-art performance [].
 
-\begin{figure}
+\begin{figure}\label{fig:example}
     \centering
     \begin{tabular}{c c c c}
         \includegraphics[width=80pt]{bicubic.png} & \includegraphics[width=80pt]{srresnet.png} & \includegraphics[width=80pt]{srgan.png} & \includegraphics[width=80pt]{original.png} \\
         \small Bicubic Interpolation              & \small SRResNet                            & \small SRGAN                            & \small Original
     \end{tabular}
-
-    \caption{Visual comparisons of traditional and learning-based classic image SR approaches to a $\times 4$-upscaled original high resolution image.}\label{fig:example}
+    \caption{Visual comparisons of traditional and learning-based classic image SR approaches to a $\times 4$-upscaled original high resolution image.}
 \end{figure}
 
 For SR related tasks, CNNs are effective at global feature extraction but have lately been usurped by transformers, which tend to be more robust and lightweight. As a consequence, pure CNN models often require added complexity just to match the performance of transformer models [https://arxiv.org/pdf/2105.01601.pdf]. It is quite common to utilize hybrid CNN-transformer models, in which CNNs are used for global feature extraction while transformers focus on local feature extraction []. E.g. …
 
 GANs tend to be tedious to fine tune and also have many trainable parameters, making the training process very long []. Similarly, diffusion models like StableSR have gigantic datasets and are quite complex []. The focus of this research project is on simplicity, and as such we do not consider these models.
 
-% ~~~ NEURIPS NOTES ~~~
+\subsubsection{All-MLP}
 
-\section{Citations, figures, tables, references}
-\label{others}
+“All-MLP” describes a model as primarily relying on only multi-layer perceptrons (MLPs), often in contrast to neural networks or transformers. These models tend to have significantly fewer parameters and simpler architectures to offer an ideal tradeoff between accuracy and training time / running time [mlp mixer, swin t]. Proposed by Tolstikhin et al., the MLP-Mixer is one of the first all-MLP demonstrations for computer vision. Despite its apparent computational limitations, MLP-Mixer has boasted results comparable to those from state-of-the-art implementations for image classification. Inspired by this work, we chose to follow the same all-MLP design philosophy and apply it on SR as a more high level benchmark.
 
+\subsubsection{Shifted Window}
 
-These instructions apply to everyone.
+\paragraph{Swin Transformer:} First popularized by Liu et al., the shifted window approach is the computational representation in a groundbreaking computer vision model: the Swin Transformer. Critically, it limits “self-attention computation to non-overlapping local windows while also allowing for cross-window connection,” eliminating global self-attention and thus reducing from quadratic to linear computational complexity relative to image size [swin t]. Variants of the Swin Transformer have achieved state-of-the-art results in a variety of common tasks, including image classification and semantic segmentation [3].
 
+\paragraph{Swin-Mixer:} The modularity of the shifted window technique in the Swin Transformer enables replacing its attention layers with MLPs, yielding the Swin-Mixer. Specifically, it replaces each of its multi-head attention layers with the all-MLP layers presented by Tolstikhin et al., converting the Swin Transformer blocks into Swin Mixer blocks. Swin-Mixer surpasses the already classification results of MLP-Mixer and other all-MLP models [swin t, mlp mix], but little research exists on how it performs elsewhere, e.g. in SR.
 
-\subsection{Citations within the text}
+\paragraph{SwinIR:} A pioneering model for attention-based SR, SwinIR uses basic convolutional layers for shallow feature extraction and Swin Transformer blocks for deep feature extraction. These extracted features are then passed through a basic upsampling convolution that involves a convolutional layer and a pixel shuffle. SwinIR impressively surpasses other top-performing models based on CNNs, GANs, etc. in classical SR [swin ir].
 
+\section{Model Architecture}
 
-The \verb+natbib+ package will be loaded for you by default.  Citations may be
-author/year or numeric, as long as you maintain internal consistency.  As to the
-format of the references themselves, any style is acceptable as long as it is
-used consistently.
-
-
-The documentation for \verb+natbib+ may be found at
-\begin{center}
-    \url{http://mirrors.ctan.org/macros/latex/contrib/natbib/natnotes.pdf}
-\end{center}
-Of note is the command \verb+\citet+, which produces citations appropriate for
-use in inline text.  For example,
-\begin{verbatim}
-   \citet{hasselmo} investigated\dots
-\end{verbatim}
-produces
-\begin{quote}
-    Hasselmo, et al.\ (1995) investigated\dots
-\end{quote}
-
-
-If you wish to load the \verb+natbib+ package with options, you may add the
-following before loading the \verb+neurips_2023+ package:
-\begin{verbatim}
-   \PassOptionsToPackage{options}{natbib}
-\end{verbatim}
-
-
-If \verb+natbib+ clashes with another package you load, you can add the optional
-argument \verb+nonatbib+ when loading the style file:
-\begin{verbatim}
-   \usepackage[nonatbib]{neurips_2023}
-\end{verbatim}
-
-
-As submission is double blind, refer to your own published work in the third
-person. That is, use ``In the previous work of Jones et al.\ [4],'' not ``In our
-previous work [4].'' If you cite your other papers that are not widely available
-(e.g., a journal paper under review), use anonymous author names in the
-citation, e.g., an author of the form ``A.\ Anonymous'' and include a copy of the anonymized paper in the supplementary material.
-
-
-\subsection{Footnotes}
-
-
-Footnotes should be used sparingly.  If you do require a footnote, indicate
-footnotes with a number\footnote{Sample of the first footnote.} in the
-text. Place the footnotes at the bottom of the page on which they appear.
-Precede the footnote with a horizontal rule of 2~inches (12~picas).
-
-
-Note that footnotes are properly typeset \emph{after} punctuation
-marks.\footnote{As in this example.}
-
-
-\subsection{Figures}
-
-
-\begin{figure}
+\begin{figure}\label{fig:architecture}
     \centering
-    \fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
-    \caption{Sample figure caption.}
+    \includegraphics[width=\textwidth]{qwinir-architecture.png}
+    \caption{The architecture of QwinIR. Figure based off of that of SwinIR.}
 \end{figure}
 
+The architecture of QwinIR is novel, in that it combines the model architectures of SwinIR and Swin-Mixer. Similar to SwinIR, our model involves a 3 step architecture: shallow feature extraction, deep feature extraction, and image reconstruction. We illustrate this in Figure~\ref{fig:architecture}.
 
-All artwork must be neat, clean, and legible. Lines should be dark enough for
-purposes of reproduction. The figure number and caption always appear after the
-figure. Place one line space before the figure caption and one line space after
-the figure. The figure caption should be lower case (except for first word and
-proper nouns); figures are numbered consecutively.
+\subsection{Shallow Feature Extraction}
 
+QwinIR uses the exact same method for shallow feature extraction as SwinIR. That is, given a low quality input image, we use a $3 \times 3$ convolutional layer to perform shallow feature extraction. This step is taken because convolutional layers are quite good at local feature extraction, making them useful in the early stages of image processing. The authors of the SwinIR paper note that the use of this layer not only leads to more stable optimization and better results, but it also provides a simple way of mapping input images to higher dimensional feature spaces [3].
 
-You may use color figures.  However, it is best for the figure captions and the
-paper body to be legible if the paper is printed in either black/white or in
-color.
+\subsection{Deep Feature Extraction}
 
-
-\subsection{Tables}
-
-
-All tables must be centered, neat, clean and legible.  The table number and
-title always appear before the table.  See Table~\ref{sample-table}.
-
-
-Place one line space before the table title, one line space after the
-table title, and one line space after the table. The table title must
-be lower case (except for first word and proper nouns); tables are
-numbered consecutively.
-
-
-Note that publication-quality tables \emph{do not contain vertical rules.} We
-strongly suggest the use of the \verb+booktabs+ package, which allows for
-typesetting high-quality, professional tables:
-\begin{center}
-    \url{https://www.ctan.org/pkg/booktabs}
-\end{center}
-This package was used to typeset Table~\ref{sample-table}.
-
-
-\begin{table}
-    \caption{Sample table title}
-    \label{sample-table}
+\begin{figure}\label{fig:transformer}
     \centering
-    \begin{tabular}{lll}
-        \toprule
-        \multicolumn{2}{c}{Part}                   \\
-        \cmidrule(r){1-2}
-        Name     & Description     & Size ($\mu$m) \\
-        \midrule
-        Dendrite & Input terminal  & $\sim$100     \\
-        Axon     & Output terminal & $\sim$10      \\
-        Soma     & Cell body       & up to $10^6$  \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+    \includegraphics[width=100pt]{swin-transformer-block.png}
+    \caption{Two original successive Swin Transformer blocks with attention heads included (W-MSA and SW-MSA). Swin Mixer blocks replace each of these with a Mixer Layer.}
+\end{figure}
 
-\subsection{Math}
-Note that display math in bare TeX commands will not create correct line numbers for submission. Please use LaTeX (or AMSTeX) commands for unnumbered display math. (You really shouldn't be using \$\$ anyway; see \url{https://tex.stackexchange.com/questions/503/why-is-preferable-to} and \url{https://tex.stackexchange.com/questions/40492/what-are-the-differences-between-align-equation-and-displaymath} for more information.)
+Next, we perform deep feature extraction by passing the extracted shallow features through a series of residual Swin mixer blocks (RSMBs) and a $3 \times 3$ convolutional layer (these blocks are called "residual" because they each contain a skip connection, where the results of each block are aggregated with the input features passed to the block). Each RSMB contains a series of Swin mixer layers (SMLs) followed by a $3 \times 3$ convolutional layer, and each Swin mixer layer is simply a Swin Transformer layer that has had its multi stage attention head replaced with a mixer layer, as we depict in Figure~\ref{fig:transformer} [4].
 
-\subsection{Final instructions}
+\paragraph{Mixer Layer:} Each mixer layer is composed of 2 MLPs, with two fully connected layers and GELU nonlinearities. Mixer layers contain one channel-mixing MLP and one token-mixing MLP. The channel-mixing MLPs come first, which allow communication between different input channels and operate on each input token independently. The results of the channel-mixing MLPs are passed to the token-mixing MLPs, which allow communication between different tokens and operate on each channel independently [14]. By utilizing this mixing architecture, features are able to be extracted without the explicit need for attention. Hence, it makes logical sense for deep feature extraction to be accurate even when attention heads in the Swin Transformer blocks are replaced with mixer layers. However, due to the removal of attention heads, these blocks are technically no longer transformers, and hence we do not refer to them as such.
 
-Do not change any aspects of the formatting parameters in the style files.  In
-particular, do not modify the width or length of the rectangle the text should
-fit into, and do not change font sizes (except perhaps in the
-\textbf{References} section; see below). Please note that pages should be
-numbered.
+\begin{figure}\label{fig:mixer}
+    \centering
+    \includegraphics[width=\textwidth]{mixer-layer.png}
+    \caption{Mixer layer from MLP-Mixer, consisting of token-mixing MLP, channel-mixing MLP, skip-connections, dropout, and layer normalization}
+\end{figure}
 
+\subsection{Reconstruction}
 
-\section{Preparing PDF files}
+Using a skip connection, the originally extracted shallow features and the newly extracted deep features are aggregated and passed into an image reconstruction module. By using a skip connection, we can ensure that high frequency features are not lost during the reconstruction process [3]. For image reconstruction, we implement a sub-pixel convolutional neural network (ESPCN), the same technique utilized by SwinIR [7]. The ESPCN consists of two convolution layers for feature extraction, and a sub-pixel convolution layer that aggregates the low resolution features. From here, the ESPCN then constructs the high resolution image in a single step.
 
+\begin{figure}\label{fig:escpn}
+    \centering
+    \includegraphics[width=\textwidth]{espcn.png}
+    \caption{The network architecture for ESPCN}
+\end{figure}
 
-Please prepare submission files with paper size ``US Letter,'' and not, for
-example, ``A4.''
+\section{Experiments}
 
+Unfortunately, we were unable to conduct a formal experimental procedure due to resource and time constraints However, barring those factors, our experimental phase would proceed as follows: for our experimental procedure, we intend to test the ability of our model to perform image upscaling. Given that our model is derived from the SwinIR architecture, it is logical for our experiments to replicate those performed in the SwinIR paper. It should be noted that in the original SwinIR paper, the experimental procedure consists of image super resolution, image denoising, and JPEG compression artifact reduction. Since our architecture focuses only on super resolution, we ignore the other 2 experimental components.
 
-Fonts were the main cause of problems in the past years. Your PDF file must only
-contain Type 1 or Embedded TrueType fonts. Here are a few instructions to
-achieve this.
+\paragraph{Ablation Study:} The first stage of our experimental procedure will be an ablation study. This study involves altering and removing certain components from our model to understand the contributions of those components to our results. In this stage, our model will be trained on the DIV2K [11] dataset and will be tested on the Manga109 [12] dataset. The first portion of this stage will observe the effects of changing the channel number, number of Swin-MLP blocks, and number of SMLs per block on model performance. To perform this step, we will test a variety of combinations for values of these hyperparameters and observe the relative correlations between the values of each hyperparameter and peak signal to noise ratio (PSNR) for the upscaled images. The second portion of this stage will observe the effects of changing patch size and the number of training images. To perform this step, we will test a variety of combinations for values of these hyperparameters and observe how each value affects PSNR and time for convergence. The third portion of this stage will observe the effects of the residual connection and convolutional layer in each SMB. Like in the SwinIR paper, we will test 4 residual connection variants in each block: no residual connection (i.e. no convolution operation), a $1 \times 1$ convolution layer, a $3 \times 3$ convolution layer, and three $3 \times 3$ convolution layers. For each of these hyperparameter values, the corresponding PSNRs will be assessed and compared.
 
+\paragraph{Results} In the second stage of our experimental procedure, we will select the optimal combination of hyperparameters as determined in the previous stage, and we will use them to test our model on the Set5 [8], Set14 [9], BSD100 [10], Urban100 [13], and Manga109 [12] datasets. The benchmarks we record in this stage will be PSNR (peak signal to noise ratio, lower indicates less grainy output images), SSIM (structural similarity index measure, which compares how similar an upscaled image is to the original high quality image a model seeks to reproduce), the number of model parameters, and the number of multiply-accumulate operations. These measurements will be compared to the benchmarks recorded in the SwinIR paper (this is convenient, because the SwinIR paper contains benchmarks for numerous SOTA architectures, not just for the SwinIR architecture). By performing this comparison, we will gain conclusive evidence as to how our model performs relative to state of the art models–in particular, if our model has a viable accuracy/cost ratio.
 
-\begin{itemize}
+\section{Conclusion}
 
-
-    \item You should directly generate PDF files using \verb+pdflatex+.
-
-
-    \item You can check which fonts a PDF files uses.  In Acrobat Reader, select the
-          menu Files$>$Document Properties$>$Fonts and select Show All Fonts. You can
-          also use the program \verb+pdffonts+ which comes with \verb+xpdf+ and is
-          available out-of-the-box on most Linux machines.
-
-
-    \item \verb+xfig+ "patterned" shapes are implemented with bitmap fonts.  Use
-          "solid" shapes instead.
-
-
-    \item The \verb+\bbold+ package almost always uses bitmap fonts.  You should use
-          the equivalent AMS Fonts:
-          \begin{verbatim}
-   \usepackage{amsfonts}
-\end{verbatim}
-          followed by, e.g., \verb+\mathbb{R}+, \verb+\mathbb{N}+, or \verb+\mathbb{C}+
-          for $\mathbb{R}$, $\mathbb{N}$ or $\mathbb{C}$.  You can also use the following
-          workaround for reals, natural and complex:
-          \begin{verbatim}
-   \newcommand{\RR}{I\!\!R} %real numbers
-   \newcommand{\Nat}{I\!\!N} %natural numbers
-   \newcommand{\CC}{I\!\!\!\!C} %complex numbers
-\end{verbatim}
-          Note that \verb+amsfonts+ is automatically loaded by the \verb+amssymb+ package.
-
-
-\end{itemize}
-
-
-If your file contains type 3 fonts or non embedded TrueType fonts, we will ask
-you to fix it.
-
-
-\subsection{Margins in \LaTeX{}}
-
-
-Most of the margin problems come from figures positioned by hand using
-\verb+\special+ or other commands. We suggest using the command
-\verb+\includegraphics+ from the \verb+graphicx+ package. Always specify the
-figure width as a multiple of the line width as in the example below:
-\begin{verbatim}
-   \usepackage[pdftex]{graphicx} ...
-   \includegraphics[width=0.8\linewidth]{myfile.pdf}
-\end{verbatim}
-See Section 4.4 in the graphics bundle documentation
-(\url{http://mirrors.ctan.org/macros/latex/required/graphics/grfguide.pdf})
-
-
-A number of width problems arise when \LaTeX{} cannot properly hyphenate a
-line. Please give LaTeX hyphenation hints using the \verb+\-+ command when
-necessary.
-
+In this paper we propose QwinIR, an image restoration model that combines the architectures of SwinIR and Swin-Mixer. Like SwinIR, this model consists of three phases: shallow feature extraction, deep feature extraction, and image reconstruction. Unlike SwinIR, our model uses residual Swin-Mixer blocks for deep feature extraction, where each block consists of Swin-Mixer layers, a convolution layer, and a residual connection. While we were unable to conduct a formal experimental phase due to resource and time constraints, we believe that this model has potential to perform at a similar level to state of the art image upscaling models. For future work, we would like to conduct a formal testing phase on a more substantial cluster of GPUS, as GCP and our personal computers proved to be insufficient for training our model. Furthermore, we would like to experiment with the placement of skip connections within our network to potentially remove the need for an initial convolutional layer for shallow feature extraction, similar to the SwinSeg architecture described by Zhang et al. [6].
 
 \begin{ack}
-    Use unnumbered first level headings for the acknowledgments. All acknowledgments
-    go at the end of the paper before the list of references. Moreover, you are required to declare
-    funding (financial activities supporting the submitted work) and competing interests (related financial activities outside the submitted work).
-    More information about this disclosure can be found at: \url{https://neurips.cc/Conferences/2023/PaperInformation/FundingDisclosure}.
-
-
-    Do {\bf not} include this section in the anonymized submission, only in the final paper. You can use the \texttt{ack} environment provided in the style file to autmoatically hide this section in the anonymized submission.
+    We would like to acknowledge Paris Smaragdis, Krishan Subramani (please be gentle to us), Evan Matthews, Nicolas Prate, and Quinn’s sister’s cat, Sesame.
+    
+    We have no funding.
 \end{ack}
-
-
-
-\section{Supplementary Material}
-
-Authors may wish to optionally include extra information (complete proofs, additional experiments and plots) in the appendix. All such materials should be part of the supplemental material (submitted separately) and should NOT be included in the main submission.
-
-
 \section*{References}
 
-
-References follow the acknowledgments in the camera-ready paper. Use unnumbered first-level heading for
-the references. Any choice of citation style is acceptable as long as you are
-consistent. It is permissible to reduce the font size to \verb+small+ (9 point)
-when listing the references.
-Note that the Reference section does not count towards the page limit.
-\medskip
-
-
-{
-\small
-
-
-[1] Alexander, J.A.\ \& Mozer, M.C.\ (1995) Template-based algorithms for
+ [1] Alexander, J.A.\ \& Mozer, M.C.\ (1995) Template-based algorithms for
 connectionist rule extraction. In G.\ Tesauro, D.S.\ Touretzky and T.K.\ Leen
 (eds.), {\it Advances in Neural Information Processing Systems 7},
 pp.\ 609--616. Cambridge, MA: MIT Press.
@@ -334,9 +161,95 @@ TELOS/Springer--Verlag.
 [3] Hasselmo, M.E., Schnell, E.\ \& Barkai, E.\ (1995) Dynamics of learning and
 recall at excitatory recurrent synapses and cholinergic modulation in rat
 hippocampal region CA3. {\it Journal of Neuroscience} {\bf 15}(7):5249-5262.
-}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+[1] https://arxiv.org/pdf/1501.00092.pdf (SRCNN)
+
+[2] https://arxiv.org/pdf/1609.04802.pdf (SRGAN)
+
+[3] https://arxiv.org/pdf/2108.10257.pdf (SwinIR)
+
+[4] https://arxiv.org/pdf/2103.14030.pdf (Swin Transformer)
+
+[5] https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=\&arnumber=1203207 (Overview)
+
+[6] https://www.sciencedirect.com/science/article/pii/S0029801823012696?via=ihub (SwinSeg)
+
+[7] https://arxiv.org/pdf/1609.05158.pdf (ESPCN)
+
+[8] Marco Bevilacqua, Aline Roumy, Christine Guillemot, and Marie line Alberi Morel. Low-complexity single-image super-resolution based on nonnegative neighbor embedding. In British Machine Vision Conference, pages 135.1– 135.10, 2012
+
+    [9] Roman Zeyde, Michael Elad, and Matan Protter. On single image scale-up using sparse-representations. In International Conference on Curves and Surfaces, pages 711–730, 2010.
+
+    [10] David Martin, Charless Fowlkes, Doron Tal, and Jitendra Malik. A database of human segmented natural images and its application to evaluating segmentation algorithms and measuring ecological statistics. In IEEE Conference on International Conference on Computer Vision, pages 416– 423, 2001
+
+    [11] Eirikur Agustsson and Radu Timofte. Ntire 2017 challenge on single image super-resolution: Dataset and study. In IEEE Conference on Computer Vision and Pattern Recognition Workshops, pages 126–135, 2017.
+
+    [12] Yusuke Matsui, Kota Ito, Yuji Aramaki, Azuma Fujimoto, Toru Ogawa, Toshihiko Yamasaki, and Kiyoharu Aizawa. Sketch-based manga retrieval using manga109 dataset. Multimedia Tools and Applications, 76(20):21811– 21838, 2017
+
+    [13]  Jia-Bin Huang, Abhishek Singh, and Narendra Ahuja. Single image super-resolution from transformed self exemplars. In IEEE Conference on Computer Vision and Pattern Recognition, pages 5197–5206, 2015
+
+    [14] https://openreview.net/pdf?id=EI2KOXKdnP (mixer)
+
+[15] https://paperswithcode.com/area/computer-vision
+
+[16] https://ieeexplore.ieee.org/abstract/document/1203207
+
+[17] http://behindthepixels.io/assets/files/DLSS2.0.pdf
+
+[18] https://arxiv.org/pdf/2105.01601.pdf
+
+[19] https://arxiv.org/abs/2305.07015
+
+
 
 
 \end{document}
+
+% ~~~ NEURIPS NOTES ~~~
+% \section{Citations, figures, tables, references}
+% \label{others}
+
+% These instructions apply to everyone.
+
+% \subsection{Citations within the text}
+
+% The \verb+natbib+ package will be loaded for you by default.  Citations may be
+% author/year or numeric, as long as you maintain internal consistency.  As to the
+% format of the references themselves, any style is acceptable as long as it is
+% used consistently.
+
+
+% The documentation for \verb+natbib+ may be found at
+% \begin{center}
+%     \url{http://mirrors.ctan.org/macros/latex/contrib/natbib/natnotes.pdf}
+% \end{center}
+% Of note is the command \verb+\citet+, which produces citations appropriate for
+% use in inline text.  For example,
+% \begin{verbatim}
+%    \citet{hasselmo} investigated\dots
+% \end{verbatim}
+% produces
+% \begin{quote}
+%     Hasselmo, et al.\ (1995) investigated\dots
+% \end{quote}
+
+
+% If you wish to load the \verb+natbib+ package with options, you may add the
+% following before loading the \verb+neurips_2023+ package:
+% \begin{verbatim}
+%    \PassOptionsToPackage{options}{natbib}
+% \end{verbatim}
+
+
+% If \verb+natbib+ clashes with another package you load, you can add the optional
+% argument \verb+nonatbib+ when loading the style file:
+% \begin{verbatim}
+%    \usepackage[nonatbib]{neurips_2023}
+% \end{verbatim}
+
+
+% As submission is double blind, refer to your own published work in the third
+% person. That is, use ``In the previous work of Jones et al.\ [4],'' not ``In our
+% previous work [4].'' If you cite your other papers that are not widely available
+% (e.g., a journal paper under review), use anonymous author names in the
+% citation, e.g., an author of the form ``A.\ Anonymous'' and include a copy of the anonymized paper in the supplementary material.
