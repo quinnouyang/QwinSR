@@ -1,5 +1,7 @@
 \documentclass{article}
 
+\PassOptionsToPackage{square, numbers}{natbib}
+
 % ready for submission
 % \usepackage{neurips_2023}
 
@@ -8,7 +10,7 @@
 \usepackage[preprint]{neurips_2023}
 
 % to compile a camera-ready version, add the [final] option, e.g.:
-%     \usepackage[final]{neurips_2023}
+% \usepackage[final]{neurips_2023}
 
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
@@ -17,22 +19,23 @@
 \usepackage{booktabs}       % professional-quality tables
 \usepackage{amsfonts}       % blackboard math symbols
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
-\usepackage{microtype}      % microtypography
+\usepackage{microtype}      % microtypog raphy
 \usepackage{xcolor}         % colors
 \usepackage{graphicx}       % figures
 
+\bibliographystyle{abbrvnat}
 \graphicspath{ {figures/} }
 
 \title{QwinSR: An All-MLP Shifted Window Model for Image Super Resolution}
 
 \author{
   Mark Bauer \\
-  Siebel Department of Computer Science\\
+  Grainger College of Engineering\\
   University of Illinois Urbana-Champaign\\
   \texttt{markb6@illinois.edu} \\
   \And
   Quinn Ouyang\thanks{"QwinSR" is a play on Swin using Quinn's name. This was Mark's idea.} \\
-  School of Music \\
+  College of Fine and Applied Arts \\
   University of Illinois Urbana-Champaign \\
   \texttt{qouyang3@illinois.edu} \\
 }
@@ -42,8 +45,22 @@
 \maketitle
 
 \begin{abstract}
-    Since its inception, the Swin Transformer backbone architecture has consistently showcased remarkable performance across a range of well-established computer vision benchmarks. To enhance computational efficiency, the Swin Mixer architecture has adopted a similar structure. However, it distinguishes itself by substituting transformers with Mixer Layers, thus giving rise to Swin Mixer Layers (SMLs). In line with this design, we introduce QwinSR, an application of this all-MLP architecture tailored for the task of single image super-resolution. This adaptation simplifies the original transformer-based image restoration model, SwinIR. QwinSR leverages SMLs to extract essential features and subsequently aggregates them within a compact convolutional neural network, facilitating image reconstruction. We anticipate that this approach will yield competitive accuracy-to-computation ratios, particularly when compared to SwinIR and other leading models in the field.
+    Famous for its shifted window representation, the Swin Transformer has consistently showcased state-of-the-art performance across a range of well-established computer vision benchmarks. To enhance computational efficiency, the Swin Mixer architecture adopts this structure but substitutes its attention layers with simpler multi-layer perceptrons (MLPs). In line with this design, we introduce QwinSR, an application of this all-MLP architecture tailored for single image super-resolution. This adaptation simplifies the Swin Transforer-based image restoration model, SwinIR, which leverages shifted windows to extract high-frequency features and subsequently aggregates them within a compact convolutional neural network to reconstruct a higher resolution image. We anticipate that our model will yield competitive accuracy-to-computation metrics, particularly when compared to SwinIR and other leading models in the field.
 \end{abstract}
+
+\subsubsection*{Citations Example (TODO: Remove)}
+
+To add a reference:
+
+\begin{enumerate}
+    \item Go to article's Arxiv and click "Export BibTex Conversion" on right sidebar (or make your own entry following examples)
+    \item Paste entry into \texttt{baby.bib}
+    \item Cite via the entry's label using \texttt{citet} for name-number and \texttt{citep} for number-only.
+\end{enumerate}.
+
+Notice that the references are automatically ordered and generated from \texttt{baby.bib} at the bottom of this paper via \texttt{bibliography\{baby\}}.
+
+As proposed by \citet{liang2021swinir}, this is a sample in-line citation with author and name. Or if you only want the number (more common) \citep{knuthwebsite}.
 
 \section{Introduction}
 
@@ -80,7 +97,7 @@ GANs tend to be tedious to fine tune and also have many trainable parameters, ma
 
 \subsubsection{Shifted Window}
 
-\paragraph{Swin Transformer:} First popularized by Liu et al., the shifted window approach is the computational representation in a groundbreaking computer vision model: the Swin Transformer. Critically, it limits “self-attention computation to non-overlapping local windows while also allowing for cross-window connection,” eliminating global self-attention and thus reducing from quadratic to linear computational complexity relative to image size [swin t]. Variants of the Swin Transformer have achieved state-of-the-art results in a variety of common tasks, including image classification and semantic segmentation [3].
+\paragraph{Swin Transformer:} First popularized by Liu et al., the shifted window approach is the computational representation in a groundbreaking computer vision model: the Swin Transformer. Critically, it limits “self-attention computation to non-overlapping local windows while also allowing for cross-window connection,” eliminating global self-attention and thus reducing from quadratic to linear computational complexity relative to image size [swin t]. Variants of the Swin Transformer have achieved state-of-the-art results in a variety of common tasks, including image classification and semantic segmentation \citep{liang2021swinir}.
 
 \paragraph{Swin-Mixer:} The modularity of the shifted window technique in the Swin Transformer enables replacing its attention layers with MLPs, yielding the Swin-Mixer. Specifically, it replaces each of its multi-head attention layers with the all-MLP layers presented by Tolstikhin et al., converting the Swin Transformer blocks into Swin Mixer blocks. Swin-Mixer surpasses the already classification results of MLP-Mixer and other all-MLP models [swin t, mlp mix], but little research exists on how it performs elsewhere, e.g. in SR.
 
@@ -98,7 +115,7 @@ The architecture of QwinIR is novel, in that it combines the model architectures
 
 \subsection{Shallow Feature Extraction}
 
-QwinIR uses the exact same method for shallow feature extraction as SwinIR. That is, given a low quality input image, we use a $3 \times 3$ convolutional layer to perform shallow feature extraction. This step is taken because convolutional layers are quite good at local feature extraction, making them useful in the early stages of image processing. The authors of the SwinIR paper note that the use of this layer not only leads to more stable optimization and better results, but it also provides a simple way of mapping input images to higher dimensional feature spaces [3].
+QwinIR uses the exact same method for shallow feature extraction as SwinIR. That is, given a low quality input image, we use a $3 \times 3$ convolutional layer to perform shallow feature extraction. This step is taken because convolutional layers are quite good at local feature extraction, making them useful in the early stages of image processing. The authors of the SwinIR paper note that the use of this layer not only leads to more stable optimization and better results, but it also provides a simple way of mapping input images to higher dimensional feature spaces \citep{liang2021swinir}.
 
 \subsection{Deep Feature Extraction}
 
@@ -120,7 +137,7 @@ Next, we perform deep feature extraction by passing the extracted shallow featur
 
 \subsection{Reconstruction}
 
-Using a skip connection, the originally extracted shallow features and the newly extracted deep features are aggregated and passed into an image reconstruction module. By using a skip connection, we can ensure that high frequency features are not lost during the reconstruction process [3]. For image reconstruction, we implement a sub-pixel convolutional neural network (ESPCN), the same technique utilized by SwinIR [7]. The ESPCN consists of two convolution layers for feature extraction, and a sub-pixel convolution layer that aggregates the low resolution features. From here, the ESPCN then constructs the high resolution image in a single step.
+Using a skip connection, the originally extracted shallow features and the newly extracted deep features are aggregated and passed into an image reconstruction module. By using a skip connection, we can ensure that high frequency features are not lost during the reconstruction process \citep{liang2021swinir}. For image reconstruction, we implement a sub-pixel convolutional neural network (ESPCN), the same technique utilized by SwinIR [7]. The ESPCN consists of two convolution layers for feature extraction, and a sub-pixel convolution layer that aggregates the low resolution features. From here, the ESPCN then constructs the high resolution image in a single step.
 
 \begin{figure}\label{fig:escpn}
     \centering
@@ -141,115 +158,66 @@ Unfortunately, we were unable to conduct a formal experimental procedure due to 
 In this paper we propose QwinIR, an image restoration model that combines the architectures of SwinIR and Swin-Mixer. Like SwinIR, this model consists of three phases: shallow feature extraction, deep feature extraction, and image reconstruction. Unlike SwinIR, our model uses residual Swin-Mixer blocks for deep feature extraction, where each block consists of Swin-Mixer layers, a convolution layer, and a residual connection. While we were unable to conduct a formal experimental phase due to resource and time constraints, we believe that this model has potential to perform at a similar level to state of the art image upscaling models. For future work, we would like to conduct a formal testing phase on a more substantial cluster of GPUS, as GCP and our personal computers proved to be insufficient for training our model. Furthermore, we would like to experiment with the placement of skip connections within our network to potentially remove the need for an initial convolutional layer for shallow feature extraction, similar to the SwinSeg architecture described by Zhang et al. [6].
 
 \begin{ack}
-    We would like to acknowledge Paris Smaragdis, Krishna Subramani (please be gentle to us), Evan Matthews, Nicolas Prate, and Quinn’s sister’s cat, Sesame.
-    
+    We would like to acknowledge Paris Smaragdis, Krish Subramani (please be gentle to us), Evan Matthews, Nicolas Prate, and Quinn’s sister’s cat, Sesame.
+
     We have no funding.
 \end{ack}
-\section*{References}
 
- [1] Alexander, J.A.\ \& Mozer, M.C.\ (1995) Template-based algorithms for
-connectionist rule extraction. In G.\ Tesauro, D.S.\ Touretzky and T.K.\ Leen
-(eds.), {\it Advances in Neural Information Processing Systems 7},
-pp.\ 609--616. Cambridge, MA: MIT Press.
+\bibliography{baby}
 
+% \section*{References}
 
-    [2] Bower, J.M.\ \& Beeman, D.\ (1995) {\it The Book of GENESIS: Exploring
-        Realistic Neural Models with the GEneral NEural SImulation System.}  New York:
-TELOS/Springer--Verlag.
+%  [1] Alexander, J.A.\ \& Mozer, M.C.\ (1995) Template-based algorithms for
+% connectionist rule extraction. In G.\ Tesauro, D.S.\ Touretzky and T.K.\ Leen
+% (eds.), {\it Advances in Neural Information Processing Systems 7},
+% pp.\ 609--616. Cambridge, MA: MIT Press.
 
 
-[3] Hasselmo, M.E., Schnell, E.\ \& Barkai, E.\ (1995) Dynamics of learning and
-recall at excitatory recurrent synapses and cholinergic modulation in rat
-hippocampal region CA3. {\it Journal of Neuroscience} {\bf 15}(7):5249-5262.
-
-[1] https://arxiv.org/pdf/1501.00092.pdf (SRCNN)
-
-[2] https://arxiv.org/pdf/1609.04802.pdf (SRGAN)
-
-[3] https://arxiv.org/pdf/2108.10257.pdf (SwinIR)
-
-[4] https://arxiv.org/pdf/2103.14030.pdf (Swin Transformer)
-
-[5] https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=\&arnumber=1203207 (Overview)
-
-[6] https://www.sciencedirect.com/science/article/pii/S0029801823012696?via=ihub (SwinSeg)
-
-[7] https://arxiv.org/pdf/1609.05158.pdf (ESPCN)
-
-[8] Marco Bevilacqua, Aline Roumy, Christine Guillemot, and Marie line Alberi Morel. Low-complexity single-image super-resolution based on nonnegative neighbor embedding. In British Machine Vision Conference, pages 135.1– 135.10, 2012
-
-    [9] Roman Zeyde, Michael Elad, and Matan Protter. On single image scale-up using sparse-representations. In International Conference on Curves and Surfaces, pages 711–730, 2010.
-
-    [10] David Martin, Charless Fowlkes, Doron Tal, and Jitendra Malik. A database of human segmented natural images and its application to evaluating segmentation algorithms and measuring ecological statistics. In IEEE Conference on International Conference on Computer Vision, pages 416– 423, 2001
-
-    [11] Eirikur Agustsson and Radu Timofte. Ntire 2017 challenge on single image super-resolution: Dataset and study. In IEEE Conference on Computer Vision and Pattern Recognition Workshops, pages 126–135, 2017.
-
-    [12] Yusuke Matsui, Kota Ito, Yuji Aramaki, Azuma Fujimoto, Toru Ogawa, Toshihiko Yamasaki, and Kiyoharu Aizawa. Sketch-based manga retrieval using manga109 dataset. Multimedia Tools and Applications, 76(20):21811– 21838, 2017
-
-    [13]  Jia-Bin Huang, Abhishek Singh, and Narendra Ahuja. Single image super-resolution from transformed self exemplars. In IEEE Conference on Computer Vision and Pattern Recognition, pages 5197–5206, 2015
-
-    [14] https://openreview.net/pdf?id=EI2KOXKdnP (mixer)
-
-[15] https://paperswithcode.com/area/computer-vision
-
-[16] https://ieeexplore.ieee.org/abstract/document/1203207
-
-[17] http://behindthepixels.io/assets/files/DLSS2.0.pdf
-
-[18] https://arxiv.org/pdf/2105.01601.pdf
-
-[19] https://arxiv.org/abs/2305.07015
+%     [2] Bower, J.M.\ \& Beeman, D.\ (1995) {\it The Book of GENESIS: Exploring
+%         Realistic Neural Models with the GEneral NEural SImulation System.}  New York:
+% TELOS/Springer--Verlag.
 
 
+% \citep{liang2021swinir} Hasselmo, M.E., Schnell, E.\ \& Barkai, E.\ (1995) Dynamics of learning and
+% recall at excitatory recurrent synapses and cholinergic modulation in rat
+% hippocampal region CA3. {\it Journal of Neuroscience} {\bf 15}(7):5249-5262.
 
+% [1] https://arxiv.org/pdf/1501.00092.pdf (SRCNN)
+
+% [2] https://arxiv.org/pdf/1609.04802.pdf (SRGAN)
+
+% \citep{liang2021swinir} https://arxiv.org/pdf/2108.10257.pdf (SwinIR)
+
+% [4] https://arxiv.org/pdf/2103.14030.pdf (Swin Transformer)
+
+% [5] https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=\&arnumber=1203207 (Overview)
+
+% [6] https://www.sciencedirect.com/science/article/pii/S0029801823012696?via=ihub (SwinSeg)
+
+% [7] https://arxiv.org/pdf/1609.05158.pdf (ESPCN)
+
+% [8] Marco Bevilacqua, Aline Roumy, Christine Guillemot, and Marie line Alberi Morel. Low-complexity single-image super-resolution based on nonnegative neighbor embedding. In British Machine Vision Conference, pages 135.1– 135.10, 2012
+
+%     [9] Roman Zeyde, Michael Elad, and Matan Protter. On single image scale-up using sparse-representations. In International Conference on Curves and Surfaces, pages 711–730, 2010.
+
+%     [10] David Martin, Charless Fowlkes, Doron Tal, and Jitendra Malik. A database of human segmented natural images and its application to evaluating segmentation algorithms and measuring ecological statistics. In IEEE Conference on International Conference on Computer Vision, pages 416– 423, 2001
+
+%     [11] Eirikur Agustsson and Radu Timofte. Ntire 2017 challenge on single image super-resolution: Dataset and study. In IEEE Conference on Computer Vision and Pattern Recognition Workshops, pages 126–135, 2017.
+
+%     [12] Yusuke Matsui, Kota Ito, Yuji Aramaki, Azuma Fujimoto, Toru Ogawa, Toshihiko Yamasaki, and Kiyoharu Aizawa. Sketch-based manga retrieval using manga109 dataset. Multimedia Tools and Applications, 76(20):21811– 21838, 2017
+
+%     [13]  Jia-Bin Huang, Abhishek Singh, and Narendra Ahuja. Single image super-resolution from transformed self exemplars. In IEEE Conference on Computer Vision and Pattern Recognition, pages 5197–5206, 2015
+
+%     [14] https://openreview.net/pdf?id=EI2KOXKdnP (mixer)
+
+% [15] https://paperswithcode.com/area/computer-vision
+
+% [16] https://ieeexplore.ieee.org/abstract/document/1203207
+
+% [17] http://behindthepixels.io/assets/files/DLSS2.0.pdf
+
+% [18] https://arxiv.org/pdf/2105.01601.pdf
+
+% [19] https://arxiv.org/abs/2305.07015
 
 \end{document}
-
-% ~~~ NEURIPS NOTES ~~~
-% \section{Citations, figures, tables, references}
-% \label{others}
-
-% These instructions apply to everyone.
-
-% \subsection{Citations within the text}
-
-% The \verb+natbib+ package will be loaded for you by default.  Citations may be
-% author/year or numeric, as long as you maintain internal consistency.  As to the
-% format of the references themselves, any style is acceptable as long as it is
-% used consistently.
-
-
-% The documentation for \verb+natbib+ may be found at
-% \begin{center}
-%     \url{http://mirrors.ctan.org/macros/latex/contrib/natbib/natnotes.pdf}
-% \end{center}
-% Of note is the command \verb+\citet+, which produces citations appropriate for
-% use in inline text.  For example,
-% \begin{verbatim}
-%    \citet{hasselmo} investigated\dots
-% \end{verbatim}
-% produces
-% \begin{quote}
-%     Hasselmo, et al.\ (1995) investigated\dots
-% \end{quote}
-
-
-% If you wish to load the \verb+natbib+ package with options, you may add the
-% following before loading the \verb+neurips_2023+ package:
-% \begin{verbatim}
-%    \PassOptionsToPackage{options}{natbib}
-% \end{verbatim}
-
-
-% If \verb+natbib+ clashes with another package you load, you can add the optional
-% argument \verb+nonatbib+ when loading the style file:
-% \begin{verbatim}
-%    \usepackage[nonatbib]{neurips_2023}
-% \end{verbatim}
-
-
-% As submission is double blind, refer to your own published work in the third
-% person. That is, use ``In the previous work of Jones et al.\ [4],'' not ``In our
-% previous work [4].'' If you cite your other papers that are not widely available
-% (e.g., a journal paper under review), use anonymous author names in the
-% citation, e.g., an author of the form ``A.\ Anonymous'' and include a copy of the anonymized paper in the supplementary material.
