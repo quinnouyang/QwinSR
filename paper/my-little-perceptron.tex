@@ -19,6 +19,9 @@
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
 \usepackage{xcolor}         % colors
+\usepackage{graphicx}       % figures
+
+\graphicspath{ {figures/} }
 
 \title{QwinSR: An All-MLP Shifted Window Model for Image Super Resolution}
 
@@ -41,47 +44,38 @@
 \maketitle
 
 \begin{abstract}
-    Since its inception, the Swin Transformer backbone architecture has consistently showcased remarkable performance across a range of well-established computer vision benchmarks. In an endeavor to enhance computational efficiency, the Swin Mixer architecture has adopted a similar structure. However, it distinguishes itself by substituting Transformers with Mixer Layers, thus giving rise to Swin Mixer Layers (SMLs). In line with this design, we introduce QwinSR, an application of this all-MLP architecture tailored for the task of single image super-resolution. This adaptation simplifies the original Transformer-based image restoration model, SwinIR. QwinSR leverages SMLs to extract essential features and subsequently aggregates them within a compact convolutional neural network, facilitating image reconstruction. We anticipate that this approach will yield competitive accuracy-to-computation ratios, particularly when compared to SwinIR and other leading models in the field.
+    Since its inception, the Swin Transformer backbone architecture has consistently showcased remarkable performance across a range of well-established computer vision benchmarks. To enhance computational efficiency, the Swin Mixer architecture has adopted a similar structure. However, it distinguishes itself by substituting transformers with Mixer Layers, thus giving rise to Swin Mixer Layers (SMLs). In line with this design, we introduce QwinSR, an application of this all-MLP architecture tailored for the task of single image super-resolution. This adaptation simplifies the original transformer-based image restoration model, SwinIR. QwinSR leverages SMLs to extract essential features and subsequently aggregates them within a compact convolutional neural network, facilitating image reconstruction. We anticipate that this approach will yield competitive accuracy-to-computation ratios, particularly when compared to SwinIR and other leading models in the field.
 \end{abstract}
 
 \section{Introduction}
 
-Despite advances in modern photography and image transmission technology, resolution loss is often an unavoidable or necessary compromise, producing a need and desire for techniques that (re)construct higher fidelity images from lower resolution sources: super-resolution (SR) imaging. Learning-based approaches have achieved remarkable results for this task and many others, but are often computationally expensive to train.
+Despite advances in modern photography and image transmission technology, resolution loss is often an unavoidable or necessary compromise. This produces a need and desire for techniques to construct higher fidelity images from lower resolution sources, which we call super resolution (SR) imaging. However, SR is a more niche category than other computer vision tasks (such as classification and semantic segmentation []), making this field ripe for new research. Given the simple objective and need for research on SR, we propose a simplified all-MLP model based on the shifted window design from Swin Transformer: QwinIR.
 
-\subsection{Super Resolution}
+\subsection{Related Work}
 
-“Super-resolution” (SR) generally refers to the process of enhancing the visual detail and fidelity of an image by predicting pixels to increase its resolution []. “Single image” differentiates from the other common variant, multiple image super-resolution, which has the same goal but with the advantage of having more than one source image (e.g. a burst shot, video, etc.) []. SR is sometimes referred to as the more general terms “upsampling” or “reconstruction,” though the latter implies that a true higher resolution version of a source image exists [].
+\subsubsection{Single Image Super-Resolution}
 
-Traditional algorithmic approaches for SR directly interpolate pixels from a lower resolution source, typically assuming a downsampling process to generalize the reconstruction. Popular basic algorithms include bicubic and nearest-neighbor interpolation which are fast and eschew the long training times associated with learning-based models, but the lack of priors obviously limits their ability to hallucinate new pixels [].
+“Super-resolution” generally refers to the process of enhancing the visual detail and fidelity of an image by predicting pixels to increase its resolution []. In other literature, SR is roughly interchangeable with the more general terms “upsampling” and “reconstruction.” Note that the latter implies that an exact / true higher resolution image exists for a lower resolution one, which typically comes from artificial downsampling (classic image SR) []. “Single image”  differentiates from the other common variant of this task, multiple image SR, which assumes the advantage of having more than one source image. Effective techniques exploit the related images for more pixel information to construct from, which can apply in the real-world (e.g. a burst shot, video frames, etc.) []. However, we focus on single image SR as it is a more fundamental and challenging task.
 
-On the other hand, machine learning models spanning a variety of architectures are capable of hallucinating pixels that far surpass the generalized interpolations that non-learning approaches limit themselves to []. Models based on convolutional neural networks (e.g. SRCNN, SRResNet), general adversarial networks (e.g. ESRGAN, SRGAN, Real-ESRGAN), and Transformers (e.g. SwinIR) have all featured state-of-the-art performance [].
+Traditional algorithmic approaches for SR directly interpolate pixels from a lower resolution source, typically assuming a downsampling process to generalize the reconstruction. Popular basic algorithms include bicubic and nearest-neighbor interpolation which are fast and eschew the long training times associated with learning-based models, but the absence of trained priors obviously limits their ability to hallucinate new pixels [].
 
-[INCLUDE PHOTO EXAMPLES OF ALGORITHMIC VS. MODEL APPROACHES]
+\subsubsection{Learning-based Approaches}
 
-\subsection{General Architectures}
+On the other hand, learning-based models spanning a variety of architectures have far surpassed the generalized interpolations that traditional approaches limit themselves to [], as we have briefly illustrated in Figure~\ref{fig:example}. Models based on convolutional neural networks (e.g. SRCNN, SRResNet), general adversarial networks (e.g. ESRGAN, SRGAN, Real-ESRGAN), and transformers (e.g. SwinIR) have all effectively competed for state-of-the-art performance [].
 
-CNNs are effective at global feature extraction but have lately been usurped by Transformers, which tend to be more robust and lightweight []. As a consequence, pure CNN models often require added complexity just to match the performance of Transformer models []. It is quite common to utilize hybrid CNN-transformer models, in which CNNs are used for global feature extraction while transformers focus on local feature extraction []. E.g. …
+\begin{figure}
+    \centering
+    \begin{tabular}{c c c c}
+        \includegraphics[width=80pt]{bicubic.png} & \includegraphics[width=80pt]{srresnet.png} & \includegraphics[width=80pt]{srgan.png} & \includegraphics[width=80pt]{original.png} \\
+        \small Bicubic Interpolation              & \small SRResNet                            & \small SRGAN                            & \small Original
+    \end{tabular}
 
-GANs tend to be tedious to fine tune and also have many trainable parameters, making the training process very long. Hence, they were not considered for the sake of this project. Similarly, diffusion models like StableSR have gigantic datasets and are quite complex. The focus of this research project is on simplicity, and as such these models were not considered.
+    \caption{Visual comparisons of traditional and learning-based classic image SR approaches to a $\times 4$-upscaled original high resolution image.}\label{fig:example}
+\end{figure}
 
-\subsection{Specific Architectures}
+For SR related tasks, CNNs are effective at global feature extraction but have lately been usurped by transformers, which tend to be more robust and lightweight. As a consequence, pure CNN models often require added complexity just to match the performance of transformer models [https://arxiv.org/pdf/2105.01601.pdf]. It is quite common to utilize hybrid CNN-transformer models, in which CNNs are used for global feature extraction while transformers focus on local feature extraction []. E.g. …
 
-\subsubsection{All-MLP}
-
-All-MLP models demonstrate that exclusively using MLPs for computer vision classification can produce comparable results to state of the art techniques. However, these models are able to achieve these performances with significantly fewer parameters and simpler architectures than the SOTA, meaning they offer a convenient tradeoff between accuracy and training time / running time.
-.
-
-The MLP-Mixer is a type of all-MLP architecture for computer vision that is based exclusively on multi-layer perceptrons (MLPs). MLP-Mixer contains two types of layers: one with MLPs applied independently to image patches (i.e. “mixing” the per-location features), and one with MLPs applied across patches (i.e. “mixing” spatial information).
-
-\paragraph{Shifted Windows}
-
-First presented in the Swin Transformer, ...
-
-The Swin-Mixer is the all-MLP variant of the Swin Transformer, which applies the shifted window technique to the MLP-Mixer architecture and improves upon the classification results of MLP-Mixer. Effectively, it replaces the multi-head attention layer with a Mixer Layer to transform Swin Transformer Blocks into Swin Mixer Blocks (SMBs). The Swin-Mixer but they have not been used in the context of image upscaling. Hence, …
-
-SwinIR uses basic convolutional layers for shallow feature extraction and Swin Transformer blocks for deep feature extraction. These extracted features are then passed through a basic upsampling block that involves a convolutional layer and a pixel shuffle.
-
-For our proposed architecture, we intend to test the effects of replacing attention heads within transformer blocks with MLPs. Theoretically, this could reduce the number of model parameters while also increasing the speed of training (at the cost of a slight decrease to upscaled image resolution). Swin-Mixer is a design proposed in the Swin Transformer paper, which involves replacing the multi-stage attention heads in the Swin Transformer blocks with mixer layers as shown in the MLP-Mixer paper. The resulting blocks are referred to as Swin MLP blocks, since they are technically no longer transformers.
+GANs tend to be tedious to fine tune and also have many trainable parameters, making the training process very long []. Similarly, diffusion models like StableSR have gigantic datasets and are quite complex []. The focus of this research project is on simplicity, and as such we do not consider these models.
 
 % ~~~ NEURIPS NOTES ~~~
 
